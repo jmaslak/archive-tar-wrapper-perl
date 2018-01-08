@@ -62,6 +62,8 @@ sub new {
 
     $self->{objdir} = tempdir();
 
+    $self->{is_gnu} = $self->is_gnu();
+
     return $self;
 }
 
@@ -90,8 +92,10 @@ sub read {
     my $compr_opt = "";
     $compr_opt = $self->is_compressed($tarfile);
 
-    my $cmd = [$self->{tar}, "${compr_opt}x$self->{tar_read_options}",
-               @{$self->{tar_gnu_read_options}},
+    my $options = "${compr_opt}x$self->{tar_read_options}";
+    if (! $self->{is_gnu} ) { $options = "-$options"; }
+
+    my $cmd = [$self->{tar}, $options, @{$self->{tar_gnu_read_options}},
                "-f", $tarfile, @files];
 
     DEBUG "Running @$cmd";
@@ -417,8 +421,11 @@ sub is_gnu {
 ###########################################
     my($self) = @_;
 
-    open PIPE, "$self->{tar} --version |" or 
-        return 0;
+    do {
+        local $SIG{__WARN__} = sub { };  # Discard stderr
+        open PIPE, "$self->{tar} --version 2>/dev/null |" or 
+            return 0;
+    };
 
     my $output = join "\n", <PIPE>;
     close PIPE;
