@@ -19,12 +19,9 @@ BEGIN { use_ok('Archive::Tar::Wrapper') };
 
 umask(0);
 my $arch = Archive::Tar::Wrapper->new();
-
 ok($arch->read("$TARDIR/foo.tgz"), "opening compressed tarfile");
-
 ok($arch->locate("001Basic.t"), "find 001Basic.t");
 ok($arch->locate("./001Basic.t"), "find ./001Basic.t");
-
 ok(!$arch->locate("nonexist"), "find nonexist");
 
 # Add a new file
@@ -34,9 +31,7 @@ ok($arch->add("foo/bar/baz", $tmploc), "adding file");
 # Add data
 my $data = "this is data";
 ok($arch->add("foo/bar/string", \$data), "adding data");
-
 ok($arch->locate("foo/bar/baz"), "find added file");
-
 ok($arch->add("foo/bar/permtest", $tmploc, {perm => 0770}), "adding file");
 
 # Make a tarball
@@ -107,25 +102,35 @@ SKIP: {
     is($rc, undef, "Failure to ask for non-existent files");
 }
 
-    # Permissions
+# Permissions
 umask(022);
 my $a5 = Archive::Tar::Wrapper->new(
-    tar_read_options => "p",
+    tar_read_options => 'p',
 );
 $a5->read("$TARDIR/bar.tar");
+$f1 = $a5->locate('bar/bar.dat');
 
-$f1 = $a5->locate("bar/bar.dat");
-
-$perm = ((stat($f1))[2] & 07777);
-is($perm, 0664, "permtest");
+if ($f1) {
+    $perm = ((stat($f1))[2] & 07777);
+} else {
+    note("Could not locate 'bar/bar.dat' inside the tarball '$TARDIR/bar.tar'");
+}
 
 SKIP: {
-      # gnu options
+    skip 'Cannot check permissions on a non-existent file', 1 unless $f1;
+    is($perm, 0664, 'testing file permissions');
+}
+
+SKIP: {
+    # gnu options
     my $a6 = Archive::Tar::Wrapper->new(
         tar_gnu_read_options => ["--numeric-owner"],
     );
 
-    skip "Only with gnu tar", 1 unless $a6->is_gnu();
+    my $is_gnu = $a6->is_gnu();
+    note($a6->{tar_error_msg});
+
+    skip "Only with gnu tar", 1 unless $is_gnu;
 
     $a6->read("$TARDIR/bar.tar");
     $f1 = $a6->locate("bar/bar.dat");
@@ -140,7 +145,9 @@ SKIP: {
         tar_gnu_write_options => ["--exclude=foo"],
     );
 
-    skip "Only with gnu tar", 1 unless $tar->is_gnu();
+    my $is_gnu = $tar->is_gnu();
+    note($tar->{tar_error_msg});
+    skip "Only with gnu tar", 1 unless $is_gnu;
 
     my $file_loc = $tar->locate("001Basic.t");
     $tar->add("foo/bar/baz", $0);

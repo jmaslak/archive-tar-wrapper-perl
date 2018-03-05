@@ -15,6 +15,9 @@ use File::Basename;
 use File::Which qw(which);
 use IPC::Run qw(run);
 use Cwd;
+use Config;
+use IPC::Open3;
+use Symbol 'gensym';
 
 our $VERSION = "0.23";
 
@@ -36,18 +39,22 @@ sub new {
         %options,
     };
 
+    if (($Config{osname} eq 'openbsd') and ($self->{tar_read_options}) ) {
+        $self->{tar_read_options} = '-' . $self->{tar_read_options};
+    }
+
     bless $self, $class;
 
     $self->{tar} = which("tar") unless defined $self->{tar};
     $self->{tar} = which("gtar") unless defined $self->{tar};
 
-    if( ! defined $self->{tar} ) {
+    unless( defined $self->{tar} ) {
         LOGDIE "tar not found in PATH, please specify location";
     }
 
     if(defined $self->{ramdisk}) {
         my $rc = $self->ramdisk_mount( %{ $self->{ramdisk} } );
-        if(!$rc) {
+        unless($rc) {
             LOGDIE "Mounting ramdisk failed";
         }
         $self->{tmpdir} = $self->{ramdisk}->{tmpdir};
@@ -77,7 +84,6 @@ sub tardir {
 sub read {
 ###########################################
     my($self, $tarfile, @files) = @_;
-
     my $cwd = getcwd();
 
     unless(File::Spec::Functions::file_name_is_absolute($tarfile)) {
@@ -87,19 +93,34 @@ sub read {
     chdir $self->{tardir} or 
         LOGDIE "Cannot chdir to $self->{tardir}";
 
-    my $compr_opt = "";
+    my $compr_opt = '';
     $compr_opt = $self->is_compressed($tarfile);
 
-    my $cmd = [$self->{tar}, "${compr_opt}x$self->{tar_read_options}",
-               @{$self->{tar_gnu_read_options}},
-               "-f", $tarfile, @files];
+    # actually, prepending '-' would work with any modern GNU tar
+    if ($Config{osname} eq 'openbsd') {
+        $compr_opt = '-' . $compr_opt if ($compr_opt);
+    }
 
-    DEBUG "Running @$cmd";
+    my @cmd;
 
-    my $rc = run($cmd, \my($in, $out, $err));
+    if ($Config{osname} eq 'openbsd') {
+        push(@cmd, $self->{tar});
+        push(@cmd, $compr_opt) if ($compr_opt ne '');
+        push(@cmd, '-x');
+        push(@cmd, $self->{tar_read_options}) if ($self->{tar_read_options} ne '');
+        push(@cmd, @{$self->{tar_gnu_read_options}}) if (scalar(@{$self->{tar_gnu_read_options}}) > 0);
+        push(@cmd, '-f', $tarfile, @files);
+    } else {
+        @cmd = ($self->{tar}, "${compr_opt}x$self->{tar_read_options}", @{$self->{tar_gnu_read_options}}, '-f', $tarfile, @files);
+    }
 
-    if(!$rc) {
-         ERROR "@$cmd failed: $err";
+
+    DEBUG "Running @cmd";
+
+    my $error_code = run(\@cmd, \my($in, $out, $err));
+
+    unless($error_code) {
+         ERROR "@cmd failed: $err";
          chdir $cwd or LOGDIE "Cannot chdir to $cwd";
          return undef;
     }
@@ -416,14 +437,22 @@ sub DESTROY {
 sub is_gnu {
 ###########################################
     my($self) = @_;
+    my($wtr, $rdr, $err) = (gensym, gensym, gensym);
+    my $pid = open3($wtr, $rdr, $err, "$self->{tar} --version");
+    my $output = join "\n", <$rdr>;
+    my $error = join "\n", <$err>;
+    close($rdr);
+    close($err);
+    close($wtr);
+    waitpid($pid, 0);
+    my $exit = $? >> 8;
 
-    open PIPE, "$self->{tar} --version |" or 
+    unless($exit == 0) {
+        $self->{tar_error_msg} = $error;
         return 0;
-
-    my $output = join "\n", <PIPE>;
-    close PIPE;
-
-    return $output =~ /GNU/;
+    } else {
+        return $output =~ /GNU/;
+    }
 }
 
 ###########################################
