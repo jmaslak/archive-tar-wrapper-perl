@@ -207,12 +207,12 @@ sub add {
     }
 
     if ( ref($path_or_stringref) ) {
-        open FILE, ">$target" or LOGDIE "Can't open $target ($!)";
+        open my $FILE, ">$target" or LOGDIE "Can't open $target ($!)";
         if ( defined $binmode ) {
-            binmode FILE, $binmode;
+            binmode $FILE, $binmode;
         }
-        print FILE $$path_or_stringref;
-        close FILE;
+        print $FILE $$path_or_stringref;
+        close $FILE;
     }
     elsif ( -d $path_or_stringref ) {
 
@@ -319,7 +319,7 @@ sub list_reset {
     my ($self) = @_;
 
     my $list_file = File::Spec->catfile( $self->{objdir}, "list" );
-    open FILE, ">$list_file" or LOGDIE "Can't open $list_file";
+    open my $FILE, ">$list_file" or LOGDIE "Can't open $list_file";
 
     my $cwd = getcwd();
     chdir $self->{tardir} or LOGDIE "Can't chdir to $self->{tardir} ($!)";
@@ -333,14 +333,14 @@ sub list_reset {
                 : -l $_ ? "l"
                 :         "f"
             );
-            print FILE "$type $entry\n";
+            print $FILE "$type $entry\n";
         },
         "."
     );
 
     chdir $cwd or LOGDIE "Can't chdir to $cwd ($!)";
 
-    close FILE;
+    close $FILE;
 
     $self->offset(0);
 }
@@ -353,18 +353,18 @@ sub list_next {
     my $offset = $self->offset();
 
     my $list_file = File::Spec->catfile( $self->{objdir}, "list" );
-    open FILE, "<$list_file" or LOGDIE "Can't open $list_file";
-    seek FILE, $offset, 0;
+    open my $FILE, "<$list_file" or LOGDIE "Can't open $list_file";
+    seek $FILE, $offset, 0;
 
     {
-        my $line = <FILE>;
+        my $line = <$FILE>;
 
         return undef unless defined $line;
 
         chomp $line;
         my ( $type, $entry ) = split / /, $line, 2;
         redo if $type eq "d" and !$self->{dirs};
-        $self->offset( tell FILE );
+        $self->offset( tell $FILE );
         return [ $entry, File::Spec->catfile( $self->{tardir}, $entry ),
             $type ];
     }
@@ -378,18 +378,18 @@ sub offset {
     my $offset_file = File::Spec->catfile( $self->{objdir}, "offset" );
 
     if ( defined $new_offset ) {
-        open FILE, ">$offset_file" or LOGDIE "Can't open $offset_file";
-        print FILE "$new_offset\n";
-        close FILE;
+        open my $FILE, ">$offset_file" or LOGDIE "Can't open $offset_file";
+        print $FILE "$new_offset\n";
+        close $FILE;
     }
 
-    open FILE, "<$offset_file"
+    open my $FILE, "<$offset_file"
       or LOGDIE
 "Can't open $offset_file (Did you call list_next() without a previous list_reset()?)";
-    my $offset = <FILE>;
+    my $offset = <$FILE>;
     chomp $offset;
     return $offset;
-    close FILE;
+    close $FILE;
 }
 
 ###########################################
