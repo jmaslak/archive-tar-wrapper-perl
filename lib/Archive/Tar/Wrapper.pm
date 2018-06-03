@@ -388,8 +388,8 @@ sub offset {
 "Can't open $offset_file (Did you call list_next() without a previous list_reset()?)";
     my $offset = <$FILE>;
     chomp $offset;
-    return $offset;
     close $FILE;
+    return $offset;
 }
 
 ###########################################
