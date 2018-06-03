@@ -19,7 +19,7 @@ use Config;
 use IPC::Open3;
 use Symbol 'gensym';
 
-our $VERSION = "0.24";
+our $VERSION = "0.25";
 
 ###########################################
 sub new {
@@ -86,14 +86,14 @@ sub read {
 ###########################################
     my ( $self, $tarfile, @files ) = @_;
 
-    chdir $self->{tardir}
-      or LOGDIE "Cannot chdir to $self->{tardir}";
-
     my $cwd = getcwd();
 
     unless ( File::Spec::Functions::file_name_is_absolute($tarfile) ) {
         $tarfile = File::Spec::Functions::rel2abs( $tarfile, $cwd );
     }
+
+    chdir $self->{tardir}
+      or LOGDIE "Cannot chdir to $self->{tardir}";
 
     my $compr_opt = '';
     $compr_opt = $self->is_compressed($tarfile);
