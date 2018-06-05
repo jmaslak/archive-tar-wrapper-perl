@@ -4,10 +4,11 @@ my $meta_merge = {
     META_MERGE => {
         resources => {
             type => 'git',
-            url =>
-              'https://github.com/glasswalk3r/archive-tar-wrapper-perl.git',
+            url  => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl',
             repository =>
-              'https://github.com/glasswalk3r/archive-tar-wrapper-perl',
+              'https://github.com/glasswalk3r/archive-tar-wrapper-perl.git',
+            bugtracker =>
+              'https://github.com/glasswalk3r/archive-tar-wrapper-perl/issues'
         },
     }
 };
