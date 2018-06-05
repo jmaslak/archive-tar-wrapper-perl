@@ -1,6 +1,4 @@
-###########################################
 package Archive::Tar::Wrapper;
-###########################################
 
 use strict;
 use warnings;
@@ -20,7 +18,7 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Carp;
 
-our $VERSION = "0.25";
+our $VERSION = "0.26";
 
 ###########################################
 sub new {
@@ -80,7 +78,6 @@ sub new {
 sub tardir {
 ###########################################
     my ($self) = @_;
-
     return $self->{tardir};
 }
 
@@ -159,8 +156,8 @@ sub is_compressed {
       or croak("Cannot sysread $tarfile: $!");
     close($fh);
     return 'z'
-      if (  ( ord( substr( $two, 0, 1 ) ) eq 0x1F )
-        and ( ord( substr( $two, 1, 1 ) ) eq 0x8B ) );
+      if (  ( ( ord( substr( $two, 0, 1 ) ) ) == 0x1F )
+        and ( ( ord( substr( $two, 1, 1 ) ) ) == 0x8B ) );
 
     return q{};
 }
@@ -320,12 +317,10 @@ sub list_all {
 sub list_reset {
 ###########################################
     my ($self) = @_;
-
     my $list_file = File::Spec->catfile( $self->{objdir}, "list" );
-    open my $fh, '>', $list_file or LOGDIE "Can't open $list_file: $!";
-
     my $cwd = getcwd();
     chdir $self->{tardir} or LOGDIE "Can't chdir to $self->{tardir} ($!)";
+    my @entries_types;
 
     find(
         sub {
@@ -336,16 +331,19 @@ sub list_reset {
                 : -l $_ ? "l"
                 :         "f"
             );
-            print $fh "$type $entry\n";
+            push( @entries_types, "$type $entry" );
         },
         "."
     );
 
-    chdir $cwd or LOGDIE "Can't chdir to $cwd ($!)";
-
-    close $fh;
-
+    open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
+    for my $entry (@entries_types) {
+        print $fh $entry, "\n";
+    }
+    close($fh);
+    chdir $cwd or LOGDIE "Can't chdir to $cwd: $!";
     $self->offset(0);
+    return 1;
 }
 
 ###########################################
@@ -361,9 +359,7 @@ sub list_next {
 
     {
         my $line = <$fh>;
-
-        return undef unless defined $line;
-
+        return unless ( defined($line) );
         chomp $line;
         my ( $type, $entry ) = split / /, $line, 2;
         redo if $type eq "d" and !$self->{dirs};
@@ -371,6 +367,7 @@ sub list_next {
         return [ $entry, File::Spec->catfile( $self->{tardir}, $entry ),
             $type ];
     }
+    close($fh);
 }
 
 ###########################################
@@ -421,12 +418,14 @@ sub write {
 
     if ( @top_entries > $self->{max_cmd_line_args} ) {
         my $filelist_file = $self->{tmpdir} . "/file-list";
-        open FLIST, ">$filelist_file"
-          or LOGDIE "Cannot open $filelist_file ($!)";
-        for (@top_entries) {
-            print FLIST "$_\n";
+        open( my $fh, '>', $filelist_file )
+          or LOGDIE "Cannot write to $filelist_file: $!";
+
+        for my $entry (@top_entries) {
+            print $fh "$entry\n";
         }
-        close FLIST;
+
+        close($fh);
         push @$cmd, "-T", $filelist_file;
     }
     else {
@@ -436,10 +435,10 @@ sub write {
     DEBUG "Running @$cmd";
     my $rc = run( $cmd, \my ( $in, $out, $err ) );
 
-    if ( !$rc ) {
+    unless ($rc) {
         ERROR "@$cmd failed: $err";
         chdir $cwd or LOGDIE "Cannot chdir to $cwd";
-        return undef;
+        return;
     }
 
     WARN $err if $err;
@@ -453,9 +452,7 @@ sub write {
 sub DESTROY {
 ###########################################
     my ($self) = @_;
-
-    $self->ramdisk_unmount() if defined $self->{ramdisk};
-
+    $self->ramdisk_unmount()  if defined $self->{ramdisk};
     rmtree( $self->{objdir} ) if defined $self->{objdir};
     rmtree( $self->{tmpdir} ) if defined $self->{tmpdir};
 }
@@ -466,8 +463,12 @@ sub is_gnu {
     my ($self) = @_;
     my ( $wtr, $rdr, $err ) = ( gensym, gensym, gensym );
     my $pid = open3( $wtr, $rdr, $err, "$self->{tar} --version" );
-    my $output = join "\n", <$rdr>;
-    my $error  = join "\n", <$err>;
+    my ( $output, $error );
+    {
+        local $/;
+        $output = <$rdr>;
+        $error  = <$err>;
+    }
     close($rdr);
     close($err);
     close($wtr);
