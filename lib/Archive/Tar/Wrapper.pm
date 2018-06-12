@@ -48,11 +48,11 @@ sub new {
 
     bless $self, $class;
 
-    $self->{tar} = which("tar")  unless defined $self->{tar};
-    $self->{tar} = which("gtar") unless defined $self->{tar};
+    $self->{tar} = which('tar')  unless defined $self->{tar};
+    $self->{tar} = which('gtar') unless defined $self->{tar};
 
     unless ( defined $self->{tar} ) {
-        LOGDIE "tar not found in PATH, please specify location";
+        LOGDIE 'tar not found in PATH, please specify location';
     }
 
     if ( defined $self->{ramdisk} ) {
@@ -67,9 +67,9 @@ sub new {
           tempdir( $self->{tmpdir} ? ( DIR => $self->{tmpdir} ) : () );
     }
 
-    $self->{tardir} = File::Spec->catfile( $self->{tmpdir}, "tar" );
+    $self->{tardir} = File::Spec->catfile( $self->{tmpdir}, 'tar' );
     mkpath [ $self->{tardir} ], 0, oct(755)
-      or LOGDIE "Cannot mkpath $self->{tardir} ($!)";
+      or LOGDIE 'Cannot create the path ' . $self->{tardir} . ": $!";
 
     $self->{objdir} = tempdir();
 
@@ -270,10 +270,8 @@ sub perm_cp {
 sub perm_get {
 ######################################
     my ($filename) = @_;
-
     my @stats = ( stat $filename )[ 2, 4, 5 ]
       or LOGDIE "Cannot stat $filename ($!)";
-
     return \@stats;
 }
 
@@ -318,30 +316,27 @@ sub list_reset {
 ###########################################
     my ($self) = @_;
     $DB::single = 1;
+
     #TODO: keep the file list as a fixed attribute of the instance
     my $list_file = File::Spec->catfile( $self->{objdir}, 'list' );
     my $cwd = getcwd();
     chdir $self->{tardir} or LOGDIE "Can't chdir to $self->{tardir}: $!";
-    my @entries_types;
+    open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
 
     find(
         sub {
             my $entry = $File::Find::name;
-            $entry =~ s#^\.##;
+            $entry =~ s#^\./##o;
             my $type = (
                   -d $_ ? 'd'
                 : -l $_ ? 'l'
                 :         'f'
             );
-            push( @entries_types, "$type $entry" );
+            print $fh "$type $entry\n";
         },
         '.'
     );
 
-    open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
-    for my $entry (@entries_types) {
-        print $fh $entry, "\n";
-    }
     close($fh);
     chdir $cwd or LOGDIE "Can't chdir to $cwd: $!";
     $self->offset(0);
@@ -361,12 +356,12 @@ sub list_next {
 
   REDO: {
         my $line = <$fh>;
+        chomp $line;
 
         unless ( defined($line) ) {
             close($fh);
         }
         else {
-            chomp $line;
             my ( $type, $entry ) = split / /, $line, 2;
             redo if ( ( $type eq 'd' ) and ( not $self->{dirs} ) );
             $self->offset( tell $fh );
