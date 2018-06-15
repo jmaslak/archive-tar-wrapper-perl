@@ -7,12 +7,20 @@ use Test::More tests => 24;
 use File::Spec;
 
 use constant TARDIR => 't/data';
-Log::Log4perl->easy_init($ERROR);
+Log::Log4perl->easy_init($DEBUG);
 
 BEGIN { use_ok('Archive::Tar::Wrapper') }
 
 umask(0);
 my $arch = Archive::Tar::Wrapper->new();
+
+if ( $arch->is_gnu ) {
+    note( $arch->{version_info} );
+}
+else {
+    note( $arch->{tar_error_msg} );
+}
+
 ok( $arch->read( File::Spec->catfile( TARDIR, 'foo.tgz' ) ),
     'can open the compressed tar file' );
 ok( $arch->locate('001Basic.t'),
@@ -128,25 +136,26 @@ SKIP: {
       );
 
     my $is_gnu = $a6->is_gnu();
-    note( $a6->{tar_error_msg} );
+    note( $a6->{tar_error_msg} ) if ( defined( $a6->{tar_error_msg} ) );
 
     skip "Only with gnu tar", 1 unless $is_gnu;
 
-    $a6->read(File::Spec->catfile(TARDIR, 'bar.tar'));
+    $a6->read( File::Spec->catfile( TARDIR, 'bar.tar' ) );
     $f1 = $a6->locate('bar/bar.dat');
 
     ok( defined $f1, 'numeric owner works' );
 
 }
 
+note('Trying to test GNU options');
 SKIP: {
     # gnu options
     my $tar =
       Archive::Tar::Wrapper->new( tar_gnu_write_options => ["--exclude=foo"], );
 
     my $is_gnu = $tar->is_gnu();
-    note( $tar->{tar_error_msg} );
-    skip "Only with gnu tar", 1 unless $is_gnu;
+    note( $tar->{tar_error_msg} ) if ( defined( $tar->{tar_error_msg} ) );
+    skip "Test is possible only with GNU tar", 1 unless $is_gnu;
 
     my $file_loc = $tar->locate("001Basic.t");
     $tar->add( "foo/bar/baz", $0 );

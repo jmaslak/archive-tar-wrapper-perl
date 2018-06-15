@@ -19,6 +19,7 @@ use Symbol 'gensym';
 use Carp;
 
 our $VERSION = "0.27";
+my $logger = get_logger();
 
 ###########################################
 sub new {
@@ -70,7 +71,8 @@ sub new {
     $self->{tardir} = File::Spec->catfile( $self->{tmpdir}, 'tar' );
     mkpath [ $self->{tardir} ], 0, oct(755)
       or LOGDIE 'Cannot create the path ' . $self->{tardir} . ": $!";
-
+    $logger->debug( 'tardir location: ' . $self->{tardir} )
+      if ( $logger->is_debug );
     $self->{objdir} = tempdir();
 
     return $self;
@@ -293,7 +295,7 @@ sub remove {
 ###########################################
     my ( $self, $rel_path ) = @_;
     my $target = File::Spec->catfile( $self->{tardir}, $rel_path );
-    rmtree($target) or LOGDIE "Can't rmtree $target ($!)";
+    rmtree($target) or LOGDIE "Can't rmtree $target: $!";
     return 1;
 }
 
@@ -315,13 +317,16 @@ sub list_all {
 sub list_reset {
 ###########################################
     my ($self) = @_;
-    $DB::single = 1;
 
     #TODO: keep the file list as a fixed attribute of the instance
     my $list_file = File::Spec->catfile( $self->{objdir}, 'list' );
     my $cwd = getcwd();
     chdir $self->{tardir} or LOGDIE "Can't chdir to $self->{tardir}: $!";
     open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
+
+    if ( $logger->is_debug ) {
+        $logger->info('List of all files identified inside the tar file');
+    }
 
     find(
         sub {
@@ -333,10 +338,12 @@ sub list_reset {
                 :         'f'
             );
             print $fh "$type $entry\n";
+            $logger->debug("$type $entry") if ( $logger->is_debug );
         },
         '.'
     );
 
+    $logger->debug('All entries listed') if ( $logger->is_debug );
     close($fh);
     chdir $cwd or LOGDIE "Can't chdir to $cwd: $!";
     $self->offset(0);
@@ -347,7 +354,6 @@ sub list_reset {
 sub list_next {
 ###########################################
     my ($self) = @_;
-    $DB::single = 1;
     my $offset = $self->offset();
     my $list_file = File::Spec->catfile( $self->{objdir}, 'list' );
     open my $fh, '<', $list_file or LOGDIE "Can't open $list_file: $!";
@@ -356,12 +362,12 @@ sub list_next {
 
   REDO: {
         my $line = <$fh>;
-        chomp $line;
 
         unless ( defined($line) ) {
             close($fh);
         }
         else {
+            chomp $line;
             my ( $type, $entry ) = split / /, $line, 2;
             redo if ( ( $type eq 'd' ) and ( not $self->{dirs} ) );
             $self->offset( tell $fh );
@@ -378,7 +384,6 @@ sub list_next {
 sub offset {
 ###########################################
     my ( $self, $new_offset ) = @_;
-
     my $offset_file = File::Spec->catfile( $self->{objdir}, "offset" );
 
     if ( defined $new_offset ) {
@@ -489,6 +494,7 @@ sub is_gnu {
         return 0;
     }
     else {
+        $self->{version_info} = $output;
         return $output =~ /GNU/;
     }
 }
@@ -529,8 +535,11 @@ sub ramdisk_mount {
     my $rc = system(@cmd);
 
     if ($rc) {
-        LOGWARN "Mount command '@cmd' failed: $?";
-        LOGWARN "Note that this only works on Linux and as root";
+
+        if ( $logger->is_info ) {
+            $logger->info("Mount command '@cmd' failed: $?");
+            $logger->info('Note that this only works on Linux and as root');
+        }
         return;
     }
 
@@ -544,11 +553,11 @@ sub ramdisk_unmount {
 ###########################################
     my ($self) = @_;
 
-    return if !exists $self->{ramdisk}->{mounted};
+    return unless ( exists $self->{ramdisk}->{mounted} );
 
     my @cmd = ( $self->{umount}, $self->{ramdisk}->{tmpdir} );
 
-    INFO "Unmounting ramdisk: @cmd";
+    $logger->info("Unmounting ramdisk: @cmd") if ( $logger->is_info );
 
     my $rc = system(@cmd);
 
