@@ -7,7 +7,7 @@ use Test::More tests => 24;
 use File::Spec;
 
 use constant TARDIR => 't/data';
-Log::Log4perl->easy_init($DEBUG);
+Log::Log4perl->easy_init($ERROR);
 
 BEGIN { use_ok('Archive::Tar::Wrapper') }
 

@@ -419,6 +419,7 @@ sub write {    ## no critic (ProhibitBuiltinHomonyms)
     opendir( my $dir, '.' ) or LOGDIE "Cannot open $self->{tardir}: $!";
     my @top_entries = readdir($dir);
     closedir($dir);
+    @top_entries = sort(@top_entries);
 
     # removing the '.' and '..' entries
     shift(@top_entries);
