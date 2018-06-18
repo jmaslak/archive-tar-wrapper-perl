@@ -18,7 +18,7 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Carp;
 
-our $VERSION = "0.27";
+our $VERSION = '0.28';
 my $logger = get_logger();
 
 ###########################################
@@ -128,7 +128,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
         );
     }
 
-    DEBUG "Running @cmd";
+    $logger->debug("Running @cmd") if ( $logger->is_debug );
 
     my $error_code = run( \@cmd, \my ( $in, $out, $err ) );
 
@@ -138,8 +138,8 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
         return;
     }
 
-    WARN $err if $err;
-    chdir $cwd or LOGDIE "Cannot chdir to $cwd";
+    $logger->warn($err) if ( $logger->is_warn and $err );
+    chdir $cwd or LOGDIE "Cannot chdir to $cwd: $!";
     return 1;
 }
 
@@ -172,11 +172,11 @@ sub locate {
     my $real_path = File::Spec->catfile( $self->{tardir}, $rel_path );
 
     if ( -e $real_path ) {
-        DEBUG "$real_path exists";
+        $logger->debug("$real_path exists") if ( $logger->is_debug );
         return $real_path;
     }
     else {
-        WARN "$rel_path not found in tarball";
+        $logger->warn("$rel_path not found in tarball") if ( $logger->is_warn );
         return;
     }
 }
@@ -325,7 +325,7 @@ sub list_reset {
     open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
 
     if ( $logger->is_debug ) {
-        $logger->info('List of all files identified inside the tar file');
+        $logger->debug('List of all files identified inside the tar file');
     }
 
     find(
@@ -446,7 +446,7 @@ sub write {    ## no critic (ProhibitBuiltinHomonyms)
         push @$cmd, @top_entries;
     }
 
-    DEBUG "Running @$cmd";
+    $logger->debug("Running @$cmd") if ( $logger->is_debug );
     my $rc = run( $cmd, \my ( $in, $out, $err ) );
 
     unless ($rc) {
@@ -913,9 +913,20 @@ newlines.
 
 =head1 LEGALESE
 
-Copyright 2005 by Mike Schilli, all rights reserved.
-This program is free software, you can redistribute it and/or
-modify it under the same terms as Perl itself.
+This software is copyright (c) 2005 of Mike Schilli.
+
+Archive-Tar-Wrapper is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Archive-Tar-Wrapper is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+Archive-Tar-Wrapper. If not, see <http://www.gnu.org/licenses/>.
 
 =head1 AUTHOR
 
