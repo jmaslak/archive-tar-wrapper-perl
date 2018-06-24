@@ -127,7 +127,7 @@ utility, because it uses it internally.
 - **$arch->read("archive.tgz")**
 
     `read()` opens the given tarball, expands it into a temporary directory
-    and returns 1 on success und `undef` on failure.
+    and returns 1 on success or `undef` on failure.
     The temporary directory holding the tar data gets cleaned up when `$arch`
     goes out of scope.
 
@@ -227,6 +227,12 @@ utility, because it uses it internally.
     Checks if the tar executable is a GNU tar by running 'tar --version'
     and parsing the output for "GNU".
 
+    Returns true or false (in Perl terms).
+
+- **$arch->is\_bsd()**
+
+    Same as `is_gnu()`, but for BSD.
+
 # Using RAM Disks
 
 On Linux, it's quite easy to create a RAM disk and achieve tremendous
@@ -302,6 +308,25 @@ into a tarball.
 
 Archive::Tar::Wrapper doesn't currently handle filenames with embedded
 newlines.
+
+## Microsoft Windows support
+
+Support on Microsoft Windows is limited.
+
+Version below Windows 10 will not be supported.
+
+The GNU `tar.exe` program doesn't work properly with the current interface of Archive::Tar::Wrapper.
+You must use the `bsdtar.exe` and make sure it appears first in the `PATH` environment variable than
+the GNU tar (if it is installed). See [http://libarchive.org/](http://libarchive.org/) for details about how to download and
+install `bsdtar.exe`, or go to [http://gnuwin32.sourceforge.net/packages.html](http://gnuwin32.sourceforge.net/packages.html) for a direct download.
+
+Windows 10 might come already with bsdtar program installed. Check 
+[https://blogs.technet.microsoft.com/virtualization/2017/12/19/tar-and-curl-come-to-windows/](https://blogs.technet.microsoft.com/virtualization/2017/12/19/tar-and-curl-come-to-windows/) for 
+more details.
+
+Having spaces in the path string to the tar program might be an issue too. Although there is some effort
+in terms of workaround it, you best might avoid it completely by installing in a different path than
+`C:\Program Files`.
 
 # LEGALESE
 

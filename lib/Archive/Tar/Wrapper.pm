@@ -36,21 +36,22 @@ sub _acquire_tar_info {
     close($wtr);
     waitpid( $pid, 0 );
     my $exit = $? >> 8;
-    
+
     $self->{tar_error_msg} = $error;
-    $self->{version_info} = $output;
+    $self->{version_info}  = $output;
     my $bsd_regex = qr/bsd/i;
     $self->{is_gnu} = 0;
     $self->{is_bsd} = 0;
-    
+
     # bsdtar exit code is 1 when asking for version
-    unless (( $exit == 0 ) or ($self->{tar} =~ $bsd_regex)) {
+    unless ( ( $exit == 0 ) or ( $self->{tar} =~ $bsd_regex ) ) {
         $self->{version_info} = 'Information not available. Search for errors';
     }
     else {
-        if ($output =~ /GNU/) {
+        if ( $output =~ /GNU/ ) {
             $self->{is_gnu} = 1;
-        } elsif($self->{tar} =~ $bsd_regex) {
+        }
+        elsif ( $self->{tar} =~ $bsd_regex ) {
             $self->{is_bsd} = 1;
         }
     }
@@ -58,14 +59,16 @@ sub _acquire_tar_info {
 
 sub _setup_mswin {
     my $self = shift;
+
     # bsdtar is always preferred on Windows
     my $tar = which('bsdtar');
-    
-    if ($tar eq '') {
+
+    if ( $tar eq '' ) {
         $tar = which('tar');
     }
-    
-    if ($tar =~ /\s/) {
+
+    if ( $tar =~ /\s/ ) {
+
         # double quoting might be required on MS Windows
         $tar = qq($tar);
     }
@@ -98,28 +101,30 @@ sub new {
     }
 
     bless $self, $class;
-    
-    if ($Config{osname} eq 'MSWin32') {
+
+    if ( $Config{osname} eq 'MSWin32' ) {
         $self->_setup_mswin();
-    } else {
+    }
+    else {
         my $tar_location = which('tar');
-        
-        unless (defined($tar_location)) {
+
+        unless ( defined($tar_location) ) {
             $tar_location = which('gtar');
         }
-        
+
         $self->{tar} = $tar_location;
     }
 
     unless ( defined $self->{tar} ) {
-    
-        if ($Config{osname} eq 'MSWin32') {
+
+        if ( $Config{osname} eq 'MSWin32' ) {
             LOGDIE 'tar not found in PATH, OS unsupported';
-        } else {
+        }
+        else {
             LOGDIE 'tar not found in PATH, please specify location';
         }
     }
-    
+
     $self->_acquire_tar_info();
 
     if ( defined $self->{ramdisk} ) {
@@ -195,7 +200,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
     }
 
     $logger->debug("Running @cmd") if ( $logger->is_debug );
-    my $error_code = run( \@cmd, my( $in, $out, $err ) );
+    my $error_code = run( \@cmd, \my ( $in, $out, $err ) );
 
     unless ($error_code) {
         ERROR "@cmd failed: $err";
@@ -205,7 +210,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
 
     $logger->warn($err) if ( $logger->is_warn and $err );
     chdir $cwd or LOGDIE "Cannot chdir to $cwd: $!";
-    return ($error_code == 0)? undef : $error_code;
+    return ( $error_code == 0 ) ? undef : $error_code;
 }
 
 ###########################################
@@ -544,7 +549,6 @@ sub is_gnu {
 sub is_bsd {
     return shift->{is_bsd};
 }
-
 
 ###########################################
 sub ramdisk_mount {
