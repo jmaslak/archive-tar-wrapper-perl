@@ -5,25 +5,24 @@ use File::Which;
 
 if ($^O eq 'MSWin32') {
     require Win32;
-    my $full_name = Win32::GetOSName();
+    my $product_info = Win32::GetOSDisplayName();
     my ($osvername, $major, $minor, $id) = Win32::GetOSVersion();
+    print "Running on $product_info - major=$major, minor=$minor, id=$id\n";
 
-    if ($major < 10) {
-        die "OS unsupported\n";
-    } else {
-        print "Running on $full_name - $major $minor $id\n";
-    }
+    die "OS unsupported\n" unless ($major >= 6);
 
     # double quoting is required on Windows if there are spaces in the path
-    my $test1 = qq(which('bsdtar.exe'));
+    my $test1 = which('bsdtar.exe');
 
     if ($test1 ne '') {
+        $test1= qq{$test1} if ($test1 =~ /\s/);
         my $version_info = `$test1 --version`;
         print "Using bstar $version_info\n";
     } else {
-        my $test2 = qq(which('tar.exe'));
+        my $test2 = which('tar.exe');
 
         if ($test2 ne '') {
+            $test2 = qq{$test2} if ($test2 =~ /\s/);
             my $version_info = `$test2 --version`;
 
             if ($version_info =~ /GNU/) {
