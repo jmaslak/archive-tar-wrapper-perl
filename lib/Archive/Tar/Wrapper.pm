@@ -971,7 +971,7 @@ newlines.
 
 Support on Microsoft Windows is limited.
 
-Version below Windows 10 will not be supported.
+Version below Windows 10 will not be supported for desktops, and for servers from Windows 2012 and above.
 
 The GNU C<tar.exe> program doesn't work properly with the current interface of Archive::Tar::Wrapper.
 You must use the C<bsdtar.exe> and make sure it appears first in the C<PATH> environment variable than
