@@ -3,36 +3,34 @@ use strict;
 use ExtUtils::MakeMaker;
 use File::Which;
 
-if ($^O eq 'MSWin32') {
+if ( $^O eq 'MSWin32' ) {
     require Win32;
     my $product_info = Win32::GetOSDisplayName();
-    my ($osvername, $major, $minor, $id) = Win32::GetOSVersion();
+    my ( $osvername, $major, $minor, $id ) = Win32::GetOSVersion();
     print "Running on $product_info - major=$major, minor=$minor, id=$id\n";
 
-    die "OS unsupported\n" unless ($major >= 6);
+    unless ( $major >= 6 ) {
+        warn
+"Too old Microsoft Windows to be supported, major version must be equal or higher 6.\n";
+        die "OS unsupported, too old version\n";
+    }
 
     # double quoting is required on Windows if there are spaces in the path
-    my $test1 = which('bsdtar.exe');
+    my $tar_path = which('bsdtar.exe');
+    $tar_path = which('tar') unless ( defined($tar_path) );
 
-    if ($test1 ne '') {
-        $test1= qq{$test1} if ($test1 =~ /\s/);
-        my $version_info = `$test1 --version`;
-        print "Using bstar $version_info\n";
-    } else {
-        my $test2 = which('tar.exe');
+    unless ( defined($tar_path) ) {
+        warn "No tar program available, cannot work without it.\n";
+        die "OS unsupported\n";
+    }
+    else {
+        $tar_path = qq{$tar_path} if ( $tar_path =~ /\s/ );
+        my $version_info = `$tar_path --version`;
+        print "Using $tar_path $version_info\n";
 
-        if ($test2 ne '') {
-            $test2 = qq{$test2} if ($test2 =~ /\s/);
-            my $version_info = `$test2 --version`;
-
-            if ($version_info =~ /GNU/) {
-                warn "GNU tar is not supported on Microsoft Windows. Install a BSD tar or check your PATH configuration\n";
-                die "OS unsupported\n";
-            } else {
-                print "Using tar $version_info\n";
-            }
-        } else {
-            warn "No tar program available\n";
+        if ( $version_info =~ /GNU/ ) {
+            warn
+"Sorry, GNU tar is not supported on Microsoft Windows. Install a BSD tar or check your PATH configuration\n";
             die "OS unsupported\n";
         }
     }

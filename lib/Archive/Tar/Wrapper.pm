@@ -61,18 +61,15 @@ sub _setup_mswin {
     my $self = shift;
 
     # bsdtar is always preferred on Windows
-    my $tar = which('bsdtar');
+    my $tar_path = which('bsdtar');
+    $tar_path = which('tar') unless ( defined($tar_path) );
 
-    if ( $tar eq '' ) {
-        $tar = which('tar');
+    if ( $tar_path =~ /\s/ ) {
+
+        # double quoting will be required is there is a space
+        $tar_path = qq($tar_path);
     }
-
-    if ( $tar =~ /\s/ ) {
-
-        # double quoting might be required on MS Windows
-        $tar = qq($tar);
-    }
-    $self->{tar} = $tar;
+    $self->{tar} = $tar_path;
 }
 
 sub new {
