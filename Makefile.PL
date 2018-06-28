@@ -51,13 +51,16 @@ my %WriteMakefileArgs = (
 
 if ( $ExtUtils::MakeMaker::VERSION >= 6.50 ) {
     $WriteMakefileArgs{META_MERGE} = {
+        'meta-spec' => { version => 2 },
         'resources' => {
-            'type' => 'git',
-            'url'  => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl',
-            'repository' =>
-              'https://github.com/glasswalk3r/archive-tar-wrapper-perl.git',
-            'bugtracker' =>
-              'https://github.com/glasswalk3r/archive-tar-wrapper-perl/issues'
+            'bugtracker' => {
+                'web' => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl/issues',
+            },
+            'repository' => {
+                'type' => 'git',
+                'url' => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl.git',
+                'web' => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl',
+            },
         },
     };
 }
