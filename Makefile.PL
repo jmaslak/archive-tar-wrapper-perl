@@ -73,6 +73,13 @@ else {
     $WriteMakefileArgs{PREREQ_PM} = { 'Test::Simple' => 1.302073 };
 }
 
+if ( $ExtUtils::MakeMaker::VERSION >= 6.52 ) {
+    $WriteMakefileArgs{CONFIGURE_REQUIRES} = {
+        'ExtUtils::MakeMaker' => 0,
+        'File::Which' => 0,
+    };
+}
+
 if ( $] >= 5.005 ) {
     $WriteMakefileArgs{ABSTRACT_FROM} = 'lib/Archive/Tar/Wrapper.pm';
     $WriteMakefileArgs{AUTHOR}        = [
