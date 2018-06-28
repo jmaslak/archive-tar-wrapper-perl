@@ -5,6 +5,8 @@ Revision history for Perl extension Archive::Tar::Wrapper
     Keeping track of changes per request https://github.com/glasswalk3r/archive-tar-wrapper-perl/issues/7.
     Fixing proper handling of File::Which when checking on Microsoft Windows.
     Refactored troubleshooting messages on Microsoft Windows.
+    Bug fixes provided by Shoichi Kaji (skaji at cpan.org) in PRs https://github.com/glasswalk3r/archive-tar-wrapper-perl/pull/9
+    and https://github.com/glasswalk3r/archive-tar-wrapper-perl/pull/8
 
 0.29 (2018/06/25):
     Added Microsoft Windows support with the help of Ingram Braun M.A. <me@ingram-braun.net>.
