@@ -782,7 +782,7 @@ C<read()> will fail.
 =item B<$arch-E<gt>list_reset()>
 
 Resets the list iterator. To be used before the first call to
-B<$arch->list_next()>.
+B<$arch-E<gt>list_next()>.
 
 =item B<my($tar_path, $phys_path, $type) = $arch-E<gt>list_next()>
 
