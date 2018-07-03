@@ -1,16 +1,55 @@
 use warnings;
 use strict;
-use Dumbbench;
 use File::Temp qw(tempfile tempdir);
+use Test::More tests => 1;
 
-my $bench = Dumbbench->new(
-    target_rel_precision => 0.005,    # seek ~0.5%
-    initial_runs         => 1000,     # the higher the more reliable
+package MyDumbbench;
+use parent 'Dumbbench';
+
+sub new {
+    my ( $class, @args ) = @_;
+    my $self = $class->SUPER::new(@args);
+    return $self;
+}
+
+sub report_as_text {
+    my ($self) = @_;
+    my $formatted;
+
+    foreach my $instance ( $self->instances ) {
+        my $result     = $instance->result;
+        my $result_str = Dumbbench::unscientific_notation($result);
+
+        my $mean  = $result->raw_number;
+        my $sigma = $result->raw_error->[0];
+        my $name  = $instance->_name_prefix;
+        $formatted .= sprintf(
+            "%sRan %u iterations (%u outliers).\n",
+            $name,
+            scalar( @{ $instance->timings } ),
+            scalar( @{ $instance->timings } ) - $result->nsamples
+        );
+
+        $formatted .=
+          sprintf( "%sRounded run time per iteration: %s (%.1f%%)\n",
+            $name, $result_str, $sigma / $mean * 100 );
+    }
+
+    return $formatted;
+}
+
+package main;
+use Dumbbench;
+use constant BATCH_SIZE => 1000;
+
+my $bench = MyDumbbench->new(
+    target_rel_precision => 0.005,
+    initial_runs         => BATCH_SIZE,
 );
 
 my $dir = tempdir( CLEANUP => 1 );
 my $template = 'foobar-XXXXXXXX';
-for ( 1 .. 1000 ) {
+for ( 1 .. BATCH_SIZE ) {
     my ( $fh, $filename ) = tempfile( $template, DIR => $dir );
     print $fh rand();
     close($fh);
@@ -145,4 +184,5 @@ $bench->add_instances(
 );
 
 $bench->run;
-$bench->report;
+diag( $bench->report_as_text );
+pass('Performance test for Tar::Archive::Wrapper::write()');
