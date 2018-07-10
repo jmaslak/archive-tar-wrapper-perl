@@ -2,48 +2,12 @@ use warnings;
 use strict;
 use File::Temp qw(tempfile tempdir);
 use Test::More tests => 1;
-
-package MyDumbbench;
-use parent 'Dumbbench';
-
-sub new {
-    my ( $class, @args ) = @_;
-    my $self = $class->SUPER::new(@args);
-    return $self;
-}
-
-sub report_as_text {
-    my ($self) = @_;
-    my $formatted;
-
-    foreach my $instance ( $self->instances ) {
-        my $result     = $instance->result;
-        my $result_str = Dumbbench::unscientific_notation($result);
-
-        my $mean  = $result->raw_number;
-        my $sigma = $result->raw_error->[0];
-        my $name  = $instance->_name_prefix;
-        $formatted .= sprintf(
-            "%sRan %u iterations (%u outliers).\n",
-            $name,
-            scalar( @{ $instance->timings } ),
-            scalar( @{ $instance->timings } ) - $result->nsamples
-        );
-
-        $formatted .=
-          sprintf( "%sRounded run time per iteration: %s (%.1f%%)\n",
-            $name, $result_str, $sigma / $mean * 100 );
-    }
-
-    return $formatted;
-}
-
-package main;
-use Dumbbench;
+use lib 't/lib';
+use ATWDumbbench;
 use constant BATCH_SIZE  => 1000;
 use constant TOTAL_FILES => 10;
 
-my $bench = MyDumbbench->new(
+my $bench = ATWDumbbench->new(
     target_rel_precision => 0.005,
     initial_runs         => BATCH_SIZE,
 );
@@ -184,6 +148,17 @@ $bench->add_instances(
     ),
 );
 
+note('This will take a while... hang on.');
 $bench->run;
 diag( $bench->report_as_text );
-pass('Performance test for Tar::Archive::Wrapper::write()');
+
+TODO: {
+    local $TODO = 'Too many variables to account for success';
+    my $method_name = 'with enhanced eq mark3';
+    cmp_ok(
+        $bench->measurements(),
+        '<=',
+        $bench->get_measure($method_name),
+        "'$method_name' is the fastest methods."
+    );
+}
