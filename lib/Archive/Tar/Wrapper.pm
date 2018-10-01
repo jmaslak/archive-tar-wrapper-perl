@@ -721,7 +721,7 @@ be passed in via
                     tar_gnu_read_options => ["--numeric-owner"],
                 );
 
-Similarily, C<tar_gnu_write_options> can be used to provide additional
+Similarly, C<tar_gnu_write_options> can be used to provide additional
 options for Gnu tar implementations. For example, the tar object
 
     my $tar = Archive::Tar::Wrapper->new(
