@@ -216,6 +216,7 @@ sub new {
         dirs                  => 0,
         max_cmd_line_args     => 512,
         ramdisk               => undef,
+        _os_names             => { openbsd => 'openbsd', mswin => 'MSWin32' },
 
         # hack used to enable unit testing
         osname      => delete $options{osname} || $Config{osname},
@@ -226,11 +227,11 @@ sub new {
         %options,
     };
 
-    if ( ( $self->{osname} eq 'openbsd' ) and ( $self->{tar_read_options} ) ) {
+    bless $self, $class;
+
+    if ( ( $self->_is_openbsd ) and ( $self->{tar_read_options} ) ) {
         $self->{tar_read_options} = '-' . $self->{tar_read_options};
     }
-
-    bless $self, $class;
 
     if ( $self->{osname} eq 'MSWin32' ) {
         $self->_setup_mswin();
@@ -247,8 +248,8 @@ sub new {
 
     unless ( defined $self->{tar} ) {
 
-        # this is specific for testing under MS Windows smokers without tar installed
-        # "OS unsupported" will mark the testing as NA instead of failure as convention.
+# this is specific for testing under MS Windows smokers without tar installed
+# "OS unsupported" will mark the testing as NA instead of failure as convention.
         if ( $self->{osname} eq 'MSWin32' ) {
             LOGDIE 'tar not found in PATH, OS unsupported';
         }
@@ -305,6 +306,32 @@ C<read()> will fail.
 
 =cut
 
+sub _is_openbsd {
+    my $self = shift;
+    return ( $self->{osname} eq $self->{_os_names}->{openbsd} );
+}
+
+sub _read_openbsd_opts {
+    my ( $self, $compress_opt ) = @_;
+    my @cmd;
+    push( @cmd, $self->{tar} );
+
+    if ($compress_opt) {
+
+        # actually, prepending '-' would work with any modern GNU tar
+        $compress_opt = '-' . $compress_opt;
+        push( @cmd, $compress_opt );
+    }
+
+    push( @cmd, '-x' );
+    push( @cmd, $self->{tar_read_options} )
+      if ( $self->{tar_read_options} ne '' );
+    push( @cmd, @{ $self->{tar_gnu_read_options} } )
+      if ( scalar( @{ $self->{tar_gnu_read_options} } ) > 0 );
+    return \@cmd;
+
+}
+
 sub read {    ## no critic (ProhibitBuiltinHomonyms)
     my ( $self, $tarfile, @files ) = @_;
 
@@ -317,34 +344,23 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
     chdir $self->{tardir}
       or LOGDIE "Cannot chdir to $self->{tardir}";
 
-    my $compr_opt = '';
+    my $compr_opt = '';    # sane value
     $compr_opt = $self->is_compressed($tarfile);
-
-    # actually, prepending '-' would work with any modern GNU tar
-    if ( $self->{osname} eq 'openbsd' ) {
-        $compr_opt = '-' . $compr_opt if ($compr_opt);
-    }
 
     my @cmd;
 
-    if ( $self->{osname} eq 'openbsd' ) {
-        push( @cmd, $self->{tar} );
-        push( @cmd, $compr_opt ) if ( $compr_opt ne '' );
-        push( @cmd, '-x' );
-        push( @cmd, $self->{tar_read_options} )
-          if ( $self->{tar_read_options} ne '' );
-        push( @cmd, @{ $self->{tar_gnu_read_options} } )
-          if ( scalar( @{ $self->{tar_gnu_read_options} } ) > 0 );
-        push( @cmd, '-f', $tarfile, @files );
+    if ( $self->_is_openbsd ) {
+        @cmd = @{ $self->_read_openbsd_opts($compr_opt) };
     }
     else {
         @cmd = (
             $self->{tar},
             "${compr_opt}x$self->{tar_read_options}",
             @{ $self->{tar_gnu_read_options} },
-            '-f', $tarfile, @files
         );
     }
+
+    push( @cmd, '-f', $tarfile, @files );
 
     $logger->debug("Running @cmd") if ( $logger->is_debug );
     my $error_code = run( \@cmd, \my ( $in, $out, $err ) );
@@ -364,7 +380,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
 
     $arch->list_reset()
 
-Resets the list iterator. To be used before the first call to B<$arch-E<gt>list_next()>.
+Resets the list iterator. To be used before the first call to C<$arch->list_next()>.
 
 =cut
 
@@ -373,7 +389,7 @@ sub list_reset {
 
     #TODO: keep the file list as a fixed attribute of the instance
     my $list_file = File::Spec->catfile( $self->{objdir}, 'list' );
-    my $cwd       = getcwd();
+    my $cwd = getcwd();
     chdir $self->{tardir} or LOGDIE "Can't chdir to $self->{tardir}: $!";
     open( my $fh, '>', $list_file ) or LOGDIE "Can't open $list_file: $!";
 
@@ -570,7 +586,7 @@ sub add {
     $gid     = $opts->{gid}     if defined $opts->{gid};
     $binmode = $opts->{binmode} if defined $opts->{binmode};
 
-    my $target     = File::Spec->catfile( $self->{tardir}, $rel_path );
+    my $target = File::Spec->catfile( $self->{tardir}, $rel_path );
     my $target_dir = dirname($target);
 
     unless ( -d $target_dir ) {
