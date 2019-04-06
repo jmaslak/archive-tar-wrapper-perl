@@ -1,7 +1,13 @@
 ######################################################################
 Revision history for Perl extension Archive::Tar::Wrapper
 
-0.34 (2018/03/22):
+0.35 (2019/04/05):
+    Added _rem_dots method, a improved way to remove '.' and '..' from readdir(), supposed to be faster than previous implementation with sort() and shift().
+    Added two more tests to increase testing coverage.
+    Fixed a small bug regarding Pod, that now covers 100% of the code.
+    Small fixes to documentation.
+
+0.34 (2019/03/22):
     Increased test coverage.
     Refactored code to make it easier for testing.
     Disabled performance-small.t for now.
