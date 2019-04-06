@@ -5,3 +5,5 @@ blib
 pm_to_blib
 MYMETA.json
 MYMETA.yml
+cover_db
+MYMETA.json.lock

@@ -18,7 +18,7 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Carp;
 
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 my $logger = get_logger();
 
 =pod
@@ -38,6 +38,7 @@ Archive::Tar::Wrapper - API wrapper around the 'tar' utility
 
     # Iterate over all entries in the archive
     $arch->list_reset(); # Reset Iterator
+
     # Iterate through archive
     while(my $entry = $arch->list_next()) {
         my($tar_path, $phys_path) = @$entry;
