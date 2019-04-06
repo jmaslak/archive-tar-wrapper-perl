@@ -22,3 +22,4 @@ t/data/foo.tgz
 t/lib/ATWDumbbench.pm
 xt/performance-small.t
 README.md
+CONTRIBUTING.md
