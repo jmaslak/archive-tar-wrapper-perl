@@ -388,7 +388,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
 
     $arch->list_reset()
 
-Resets the list iterator. To be used before the first call to C<$arch->list_next()>.
+Resets the list iterator. To be used before the first call to C<list_next()>.
 
 =cut
 
@@ -508,9 +508,21 @@ Expect as parameter a string with the path to the tarball.
 
 Returns:
 
-- a "z" character if the file is compressed with gzip.
-- a "j" character if the file is compressed with bzip2.
-- a "" character if the file is not compressed at all.
+=over
+
+=item *
+
+a "z" character if the file is compressed with gzip.
+
+=item *
+
+a "j" character if the file is compressed with bzip2.
+
+=item *
+
+a "" character if the file is not compressed at all.
+
+=back
 
 =cut
 
