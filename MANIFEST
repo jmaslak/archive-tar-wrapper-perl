@@ -16,6 +16,8 @@ t/007bzip.t
 t/008performance.t
 t/009compressed.t
 t/010openbsd.t
+t/011remdots.t
+t/012tarinfo.t
 t/data/bar.tar
 t/data/foo.tar.bz2
 t/data/foo.tgz
