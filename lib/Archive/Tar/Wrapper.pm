@@ -205,6 +205,7 @@ Returns a new instance of the class.
 
 sub new {
     my ( $class, %options ) = @_;
+	$DB::single = 1;
 
     my $self = {
         tar                   => delete $options{tar} || undef,
@@ -236,29 +237,33 @@ sub new {
     };
 
     bless $self, $class;
+	
+	unless ( defined $self->{tar} ) {
 
-    if ( ( $self->_is_openbsd ) and ( $self->{tar_read_options} ) ) {
-        $self->{tar_read_options} = '-' . $self->{tar_read_options};
-    }
+		if ( ( $self->_is_openbsd ) and ( $self->{tar_read_options} ) ) {
+			$self->{tar_read_options} = '-' . $self->{tar_read_options};
+		}
 
-    if ( $self->{osname} eq 'MSWin32' ) {
-        $self->_setup_mswin();
-    }
-    else {
-        $self->{tar} = which('tar') || which('gtar');
-    }
+		if ( $self->{osname} eq 'MSWin32' ) {
+			$self->_setup_mswin();
+		}
+		else {
+			$self->{tar} = which('tar') || which('gtar');
+		}
 
-    unless ( defined $self->{tar} ) {
+		unless ( defined $self->{tar} ) {
 
-# this is specific for testing under MS Windows smokers without tar installed
-# "OS unsupported" will mark the testing as NA instead of failure as convention.
-        if ( $self->{osname} eq 'MSWin32' ) {
-            LOGDIE 'tar not found in PATH, OS unsupported';
-        }
-        else {
-            LOGDIE 'tar not found in PATH, please specify location';
-        }
-    }
+			# this is specific for testing under MS Windows smokers without tar installed
+			# "OS unsupported" will mark the testing as NA instead of failure as convention.
+			if ( $self->{osname} eq 'MSWin32' ) {
+				LOGDIE 'tar not found in PATH, OS unsupported';
+			}
+			else {
+				LOGDIE 'tar not found in PATH, please specify location';
+			}
+		}
+
+	}
 
     $self->_acquire_tar_info();
 
