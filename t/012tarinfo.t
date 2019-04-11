@@ -6,6 +6,7 @@ use File::Which;
 
 note('Testing generic interface, should work everywhere');
 my $arch = Archive::Tar::Wrapper->new();
+
 # don't use those methods yourself outside these tests!
 $arch->_acquire_tar_info();
 ok( $arch->{version_info}, 'has version_info' );
@@ -14,7 +15,7 @@ ok( defined( $arch->is_gnu ), 'is_gnu is defined' );
 ok( defined( $arch->is_bsd ), 'is_bsd is defined' );
 note('Specific tests for OpenBSD');
 SKIP: {
-    skip 'Not running on OpenBSD', 3 unless ($^O eq 'openbsd');
+    skip 'Not running on OpenBSD', 3 unless ( $^O eq 'openbsd' );
     $arch = Archive::Tar::Wrapper->new();
     ok( !$arch->is_gnu, 'tar is not GNU' );
     ok( $arch->is_bsd,  'tar is BSD' );
@@ -29,13 +30,14 @@ note('All tests below are forced to ignore platform specific details');
 note('Faking error when executing tar');
 my $tar;
 
-if ($^O eq 'MSWin32') {
-	$tar = which('bsdtar');
-} else {
-	$tar = which('tar');
+if ( $^O eq 'MSWin32' ) {
+    $tar = which('bsdtar');
+}
+else {
+    $tar = which('tar');
 }
 
-$arch = Archive::Tar::Wrapper->new(osname => 'yadayadayada', tar => $tar);
+$arch = Archive::Tar::Wrapper->new( osname => 'yadayadayada', tar => $tar );
 $arch->{tar_exit_code} = 42;
 $arch->_acquire_tar_info(1);
 like(
@@ -53,10 +55,9 @@ ok( $arch->is_gnu,  'tar is GNU' );
 ok( !$arch->is_bsd, 'tar is not BSD' );
 note('Testing as BSD tar');
 $arch->{tar_exit_code} = 1;
-$arch->{version_info} = 'bsdtar 2.4.12 - libarchive 2.4.12';
-$arch->{tar}          = '/usr/bin/bsdtar';
+$arch->{version_info}  = 'bsdtar 2.4.12 - libarchive 2.4.12';
+$arch->{tar}           = '/usr/bin/bsdtar';
 $arch->_acquire_tar_info(1);
 ok( !$arch->is_gnu, 'tar is not GNU' );
 ok( $arch->is_bsd,  'tar is BSD' );
-
 

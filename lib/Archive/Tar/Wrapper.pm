@@ -205,7 +205,6 @@ Returns a new instance of the class.
 
 sub new {
     my ( $class, %options ) = @_;
-	$DB::single = 1;
 
     my $self = {
         tar                   => delete $options{tar} || undef,
@@ -237,33 +236,33 @@ sub new {
     };
 
     bless $self, $class;
-	
-	unless ( defined $self->{tar} ) {
 
-		if ( ( $self->_is_openbsd ) and ( $self->{tar_read_options} ) ) {
-			$self->{tar_read_options} = '-' . $self->{tar_read_options};
-		}
+    unless ( defined $self->{tar} ) {
 
-		if ( $self->{osname} eq 'MSWin32' ) {
-			$self->_setup_mswin();
-		}
-		else {
-			$self->{tar} = which('tar') || which('gtar');
-		}
+        if ( ( $self->_is_openbsd ) and ( $self->{tar_read_options} ) ) {
+            $self->{tar_read_options} = '-' . $self->{tar_read_options};
+        }
 
-		unless ( defined $self->{tar} ) {
+        if ( $self->{osname} eq 'MSWin32' ) {
+            $self->_setup_mswin();
+        }
+        else {
+            $self->{tar} = which('tar') || which('gtar');
+        }
 
-			# this is specific for testing under MS Windows smokers without tar installed
-			# "OS unsupported" will mark the testing as NA instead of failure as convention.
-			if ( $self->{osname} eq 'MSWin32' ) {
-				LOGDIE 'tar not found in PATH, OS unsupported';
-			}
-			else {
-				LOGDIE 'tar not found in PATH, please specify location';
-			}
-		}
+        unless ( defined $self->{tar} ) {
 
-	}
+# this is specific for testing under MS Windows smokers without tar installed
+# "OS unsupported" will mark the testing as NA instead of failure as convention.
+            if ( $self->{osname} eq 'MSWin32' ) {
+                LOGDIE 'tar not found in PATH, OS unsupported';
+            }
+            else {
+                LOGDIE 'tar not found in PATH, please specify location';
+            }
+        }
+
+    }
 
     $self->_acquire_tar_info();
 
@@ -442,12 +441,12 @@ sub _read_from_tar {
     close($err);
     close($wtr);
     waitpid( $pid, 0 );
-	chomp $error;
-	chomp $output;
+    chomp $error;
+    chomp $output;
     $self->{tar_error_msg} = $error;
     $self->{version_info}  = $output;
     $self->{tar_exit_code} = $? >> 8;
-	return 1;
+    return 1;
 }
 
 sub _acquire_tar_info {
@@ -458,19 +457,23 @@ sub _acquire_tar_info {
     $self->{is_bsd} = 0;
 
     if ( $self->_is_openbsd() ) {
-		# there is no way to acquire version information from default tar program on OpenBSD
-        $self->{version_info} = "Information not available on $Config{osname}";
-        $self->{tar_exit_code} = 0;
-        $self->{is_bsd} = 1;
-	} elsif ( ( $self->{tar} =~ $bsd_regex ) and ( $self->{tar_exit_code} == 1 ) ) {
-		# bsdtar exit code is 1 when asking for version, forcing to zero since is not an error
-		$self->{tar_exit_code} = 0;
-		$self->{is_bsd} = 1;
-	}
 
-    $self->{version_info} = 'Information not available. Search for errors' unless ( $self->{tar_exit_code} == 0 );
-	$self->{is_gnu} = 1 if ( $self->{version_info} =~ /GNU/ );
-	return 1;
+# there is no way to acquire version information from default tar program on OpenBSD
+        $self->{version_info}  = "Information not available on $Config{osname}";
+        $self->{tar_exit_code} = 0;
+        $self->{is_bsd}        = 1;
+    }
+    elsif ( ( $self->{tar} =~ $bsd_regex ) and ( $self->{tar_exit_code} == 1 ) )
+    {
+# bsdtar exit code is 1 when asking for version, forcing to zero since is not an error
+        $self->{tar_exit_code} = 0;
+        $self->{is_bsd}        = 1;
+    }
+
+    $self->{version_info} = 'Information not available. Search for errors'
+      unless ( $self->{tar_exit_code} == 0 );
+    $self->{is_gnu} = 1 if ( $self->{version_info} =~ /GNU/ );
+    return 1;
 }
 
 sub _setup_mswin {
