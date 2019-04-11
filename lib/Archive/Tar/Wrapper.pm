@@ -1191,20 +1191,22 @@ newlines.
 
 Support on Microsoft Windows is limited.
 
-Version below Windows 10 will not be supported for desktops, and for servers from Windows 2012 and above.
+Versions below Windows 10 will not be supported for desktops, and for servers only Windows 2012 and above.
 
 The GNU C<tar.exe> program doesn't work properly with the current interface of B<Archive::Tar::Wrapper>.
+
 You must use the C<bsdtar.exe> and make sure it appears first in the C<PATH> environment variable than
 the GNU tar (if it is installed). See L<http://libarchive.org/> for details about how to download and
 install C<bsdtar.exe>, or go to L<http://gnuwin32.sourceforge.net/packages.html> for a direct download.
+Be sure to look for the C<bzip2> program package to install it as well.
 
-Windows 10 might come already with bsdtar program installed. Check
-L<https://blogs.technet.microsoft.com/virtualization/2017/12/19/tar-and-curl-come-to-windows/> for
-more details.
+Windows 10 might come already with C<bsdtar> program already installed. Please search for that on the appropriate
+page (Microsoft keeps changing the link to keep track of it here).
 
 Having spaces in the path string to the tar program might be an issue too. Although there is some effort
 in terms of workaround it, you best might avoid it completely by installing in a different path than
-C<C:\Program Files>.
+C<C:\Program Files>. Installing both C<bsdtar> and C<bzip2> in C<C:\GnuWin32> will probably be enough when
+running the installers.
 
 =head1 LEGALESE
 
