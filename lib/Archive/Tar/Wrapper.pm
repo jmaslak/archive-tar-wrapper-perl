@@ -437,9 +437,12 @@ sub _read_from_tar {
     close($err);
     close($wtr);
     waitpid( $pid, 0 );
+	chomp $error;
+	chomp $output;
     $self->{tar_error_msg} = $error;
     $self->{version_info}  = $output;
     $self->{tar_exit_code} = $? >> 8;
+	return 1;
 }
 
 sub _acquire_tar_info {
@@ -449,19 +452,20 @@ sub _acquire_tar_info {
     $self->{is_gnu} = 0;
     $self->{is_bsd} = 0;
 
-    # bsdtar exit code is 1 when asking for version
-    unless ( ( $self->{tar_exit_code} == 0 ) or ( $self->{tar} =~ $bsd_regex ) )
-    {
-        $self->{version_info} = 'Information not available. Search for errors';
-    }
-    else {
-        if ( $self->{version_info} =~ /GNU/ ) {
-            $self->{is_gnu} = 1;
-        }
-        elsif ( $self->{tar} =~ $bsd_regex ) {
-            $self->{is_bsd} = 1;
-        }
-    }
+    if ( $self->_is_openbsd() ) {
+		# there is no way to acquire version information from default tar program on OpenBSD
+        $self->{version_info} = "Information not available on $Config{osname}";
+        $self->{tar_exit_code} = 0;
+        $self->{is_bsd} = 1;
+	} elsif ( ( $self->{tar} =~ $bsd_regex ) and ( $self->{tar_exit_code} == 1 ) ) {
+		# bsdtar exit code is 1 when asking for version, forcing to zero since is not an error
+		$self->{tar_exit_code} = 0;
+		$self->{is_bsd} = 1;
+	}
+
+    $self->{version_info} = 'Information not available. Search for errors' unless ( $self->{tar_exit_code} == 0 );
+	$self->{is_gnu} = 1 if ( $self->{version_info} =~ /GNU/ );
+	return 1;
 }
 
 sub _setup_mswin {
