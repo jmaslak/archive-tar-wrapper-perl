@@ -18,7 +18,7 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Carp;
 
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 my $logger = get_logger();
 
 =pod
@@ -207,7 +207,7 @@ sub new {
     my ( $class, %options ) = @_;
 
     my $self = {
-        tar                   => undef,
+        tar                   => delete $options{tar} || undef,
         tmpdir                => undef,
         tar_read_options      => '',
         tar_write_options     => '',
@@ -245,13 +245,7 @@ sub new {
         $self->_setup_mswin();
     }
     else {
-        my $tar_location = which('tar');
-
-        unless ( defined($tar_location) ) {
-            $tar_location = which('gtar');
-        }
-
-        $self->{tar} = $tar_location;
+        $self->{tar} = which('tar') || which('gtar');
     }
 
     unless ( defined $self->{tar} ) {
@@ -678,9 +672,13 @@ Expects as parameters:
 
 =over
 
-=item 1. string of the path to the file which permissions will be copied from.
+=item 1.
 
-=item 2. string of the path to the file which permissions will be copied to. 
+string of the path to the file which permissions will be copied from.
+
+=item 2.
+
+string of the path to the file which permissions will be copied to. 
 
 =back
 
@@ -1242,3 +1240,5 @@ Linux Gazette article from Ben Okopnik, issue 87
 =head1 MAINTAINER
 
 2018, Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
+
+=cut
