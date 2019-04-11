@@ -439,7 +439,14 @@ sub _read_from_tar {
     waitpid( $pid, 0 );
     $self->{tar_error_msg} = $error;
     $self->{version_info}  = $output;
-    $self->{tar_exit_code} = $? >> 8;
+
+    # there is no way to acquire version information from default tar program on OpenBSd
+    if ($Config{osname} eq 'openbsd') {
+        $self->{version_info} = "No information off tar version available on $Config{osname}";
+        $self->{tar_exit_code} = 0;
+    } else {
+        $self->{tar_exit_code} = $? >> 8;
+    }
 }
 
 sub _acquire_tar_info {
