@@ -456,6 +456,7 @@ sub _acquire_tar_info {
 		# there is no way to acquire version information from default tar program on OpenBSD
         $self->{version_info} = "Information not available on $Config{osname}";
         $self->{tar_exit_code} = 0;
+        $self->{is_bsd} = 1;
 	} elsif ( ( $self->{tar} =~ $bsd_regex ) and ( $self->{tar_exit_code} == 1 ) ) {
 		# bsdtar exit code is 1 when asking for version, forcing to zero since is not an error
 		$self->{tar_exit_code} = 0;
