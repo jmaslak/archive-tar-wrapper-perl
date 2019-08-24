@@ -92,11 +92,9 @@ if ( $ExtUtils::MakeMaker::VERSION >= 6.50 ) {
 # Test::More::is_deeply is required for testing
 if ( $ExtUtils::MakeMaker::VERSION >= 6.64 ) {
     $WriteMakefileArgs{TEST_REQUIRES}->{'Test::Simple'} = 1.302073;
-    $WriteMakefileArgs{TEST_REQUIRES}->{'Dumbbench'}    = 0.111;
 }
 else {
     $WriteMakefileArgs{PREREQ_PM}->{'Test::Simple'} = 1.302073;
-    $WriteMakefileArgs{PREREQ_PM}->{'Dumbbench'}    = 0.111;
 }
 
 if ( $ExtUtils::MakeMaker::VERSION >= 6.52 ) {

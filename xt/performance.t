@@ -2,7 +2,7 @@ use warnings;
 use strict;
 use File::Temp qw(tempfile tempdir);
 use Test::More tests => 1;
-use lib 't/lib';
+# Author test, you will need to declare P5LIB to run this test with prove
 use ATWDumbbench;
 use constant BATCH_SIZE => 1000;
 
