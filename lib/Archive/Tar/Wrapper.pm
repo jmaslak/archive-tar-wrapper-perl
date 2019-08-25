@@ -1243,7 +1243,7 @@ Archive-Tar-Wrapper. If not, see L<http://www.gnu.org/licenses/>.
 
 =item *
 
-Linux Gazette article from Ben Okopnik, issue 87
+Linux Gazette article from Ben Okopnik, L<issue 87|https://linuxgazette.net/87/okopnik.html>.
 
 =back
 
