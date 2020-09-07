@@ -114,7 +114,7 @@ Windows 10 might come already with bsdtar program installed. Check
 [https://blogs.technet.microsoft.com/virtualization/2017/12/19/tar-and-curl-come-to-windows/](https://blogs.technet.microsoft.com/virtualization/2017/12/19/tar-and-curl-come-to-windows/)
 for more details.
 
-Having spaces in the path string to the tar program might be an issue too.
+Having spaces in the path string to the `tar` program might be an issue too.
 Although there is some effort in terms of workaround it, you best might avoid it
 completely by installing in a different path than `C:\Program Files`.
 
