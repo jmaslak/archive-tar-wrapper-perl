@@ -132,7 +132,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-Archive-Tar-Wrapper. If not, see L<http://www.gnu.org/licenses/>.
+Archive-Tar-Wrapper. If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/licenses/).
 
 # AUTHOR
 
