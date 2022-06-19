@@ -3,10 +3,6 @@ use strict;
 use ExtUtils::MakeMaker;
 use File::Which;
 
-if ( $^O eq 'solaris' ) {
-    die "OS unsupported\n";
-}
-
 if ( $^O eq 'MSWin32' ) {
     require Win32;
     my $product_info = Win32::GetOSDisplayName();
