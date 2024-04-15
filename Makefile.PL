@@ -85,7 +85,7 @@ if ( $ExtUtils::MakeMaker::VERSION >= 6.50 ) {
         },
         'repository' => {
             'type' => 'git',
-            'url' =>
+            'url'  =>
               'https://github.com/glasswalk3r/archive-tar-wrapper-perl.git',
             'web' => 'https://github.com/glasswalk3r/archive-tar-wrapper-perl',
         }
@@ -111,7 +111,7 @@ if ( $] >= 5.005 ) {
     $WriteMakefileArgs{ABSTRACT_FROM} = 'lib/Archive/Tar/Wrapper.pm';
     $WriteMakefileArgs{AUTHOR}        = [
         'Mike Schilli <cpan@perlmeister.com>',
-        'Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>'
+        'Alceu Rodrigues de Freitas Junior <glasswalk3r@yahoo.com.br>'
     ];
 }
 

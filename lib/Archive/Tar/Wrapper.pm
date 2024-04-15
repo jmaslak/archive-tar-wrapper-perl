@@ -2,7 +2,7 @@ package Archive::Tar::Wrapper;
 
 use strict;
 use warnings;
-use File::Temp qw(tempdir);
+use File::Temp    qw(tempdir);
 use Log::Log4perl qw(:easy);
 use File::Spec::Functions;
 use File::Spec;
@@ -11,7 +11,7 @@ use File::Copy;
 use File::Find;
 use File::Basename;
 use File::Which qw(which);
-use IPC::Run qw(run);
+use IPC::Run    qw(run);
 use Cwd;
 use Config;
 use IPC::Open3;
@@ -817,8 +817,8 @@ parameter is set when running the constructor.
 =cut
 
 sub list_next {
-    my ($self) = @_;
-    my $offset = $self->_offset();
+    my ($self)    = @_;
+    my $offset    = $self->_offset();
     my $list_file = File::Spec->catfile( $self->{objdir}, 'list' );
     open my $fh, '<', $list_file or LOGDIE "Can't open $list_file: $!";
     seek $fh, $offset, 0;
@@ -1054,7 +1054,7 @@ sub ramdisk_mount {
 
     my @cmd = (
         $self->{mount}, "-t", "tmpfs", "-o", "size=$self->{ramdisk}->{size}",
-        "tmpfs", $self->{ramdisk}->{tmpdir}
+        "tmpfs",        $self->{ramdisk}->{tmpdir}
     );
 
     INFO "Mounting ramdisk: @cmd";
@@ -1258,6 +1258,6 @@ Linux Gazette article from Ben Okopnik, L<issue 87|https://linuxgazette.net/87/o
 
 =head1 MAINTAINER
 
-2018, Alceu Rodrigues de Freitas Junior <arfreitas@cpan.org>
+2018, Alceu Rodrigues de Freitas Junior <glasswalk3r@yahoo.com.br>
 
 =cut
