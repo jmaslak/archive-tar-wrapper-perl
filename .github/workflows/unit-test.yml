@@ -1,0 +1,33 @@
+---
+name: Unit tests
+on:  # yamllint disable-line rule:truthy
+  push:
+    paths-ignore:
+      - '*.md'
+      - 'Changes'
+      - 'MANIFEST'
+  pull_request:
+    branches:
+      - main
+jobs:
+  prove:
+    name: Test::More prove CLI execution
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - name: install and cache Perl distributions
+        uses: tecoli-com/actions-use-perl-tools@v1.1
+        with:
+          tools: >-
+            CPAN::Meta
+            Test::Simple
+            File::Temp
+            File::Which
+            IPC::Run
+            Log::Log4perl
+            Dumbbench
+      - name: runs unit tests
+        run: prove -l
+      - name: runs extended tests
+        run: prove -l xt
