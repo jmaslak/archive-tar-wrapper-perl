@@ -1,3 +1,5 @@
+![Unit tests](https://github.com/glasswalk3r/archive-tar-wrapper-perl/actions/workflows/unit-test.yml/badge.svg?branch=master)
+
 # NAME
 
 Archive::Tar::Wrapper - API wrapper around the 'tar' utility
