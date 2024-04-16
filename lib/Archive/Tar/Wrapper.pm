@@ -18,7 +18,7 @@ use IPC::Open3;
 use Symbol 'gensym';
 use Carp;
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 my $logger = get_logger();
 
 =pod
@@ -336,7 +336,7 @@ sub _read_solaris_opts {
         $cmd[-1] .= $compress_opt;
     }
 
-    $cmd[-1] .='f';
+    $cmd[-1] .= 'f';
 
     push( @cmd, $self->{tar_read_options} )
       if ( $self->{tar_read_options} ne '' );
@@ -392,8 +392,7 @@ sub read {    ## no critic (ProhibitBuiltinHomonyms)
         @cmd = (
             $self->{tar},
             "${compr_opt}x$self->{tar_read_options}",
-            @{ $self->{tar_gnu_read_options} },
-            '-f'
+            @{ $self->{tar_gnu_read_options} }, '-f'
         );
     }
 
