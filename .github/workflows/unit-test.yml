@@ -8,7 +8,7 @@ on:  # yamllint disable-line rule:truthy
       - 'MANIFEST'
   pull_request:
     branches:
-      - main
+      - master
 jobs:
   prove:
     name: Test::More prove CLI execution
