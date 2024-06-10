@@ -118,7 +118,8 @@ SKIP: {
     is( $rc, undef, 'Failure to ask for non-existent files' );
 }
 
-note('Testing permissions');
+note('Testing original file permissions');
+umask(022);
 my $a5 = Archive::Tar::Wrapper->new( tar_read_options => 'p', );
 $a5->read( File::Spec->catfile( TARDIR, 'bar.tar' ) );
 $f1 = $a5->locate('bar/bar.dat');
@@ -136,7 +137,10 @@ SKIP: {
     skip 'Cannot check permissions on a non-existent file', 1 unless $f1;
     skip 'Permissions are too different on Microsoft Windows', 1
       if ( $Config{osname} eq 'MSWin32' || $Config{osname} eq 'msys' );
-    is( $expected_permission, '664', 'testing file permissions' );
+    is( $expected_permission, '664', 'testing file permissions' )
+      or diag(
+'Known bug in Alpine Linux: https://bugs.busybox.net/show_bug.cgi?id=16102'
+      );
 }
 
 SKIP: {
